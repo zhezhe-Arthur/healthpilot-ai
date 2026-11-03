@@ -17,6 +17,7 @@ class HealthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    // 测试接口及返回数据
     @Test
     void healthEndpointShouldReturnSuccess() throws Exception {
 

@@ -12,10 +12,12 @@ public class HealthController {
 
     private final HealthService healthService;
 
+    // 注入业务服务
     public HealthController(HealthService healthService) {
         this.healthService = healthService;
     }
 
+    // GET /api/v1/health
     @GetMapping
     public ApiResponse<HealthStatusResponse> getHealth() {
         return ApiResponse.success(

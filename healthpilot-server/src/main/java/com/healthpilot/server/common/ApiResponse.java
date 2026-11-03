@@ -6,7 +6,7 @@ public record ApiResponse<T>(
         String message,
         T data
 ) {
-
+    // 统一成功响应
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(
                 0,
@@ -15,6 +15,7 @@ public record ApiResponse<T>(
         );
     }
 
+    // 统一失败响应
     public static <T> ApiResponse<T> error(
             int code,
             String message
