@@ -1,6 +1,8 @@
 
 package com.healthpilot.server.auth.controller;
 
+import com.healthpilot.server.auth.dto.LoginRequest;
+import com.healthpilot.server.auth.dto.LoginResponse;
 import com.healthpilot.server.auth.dto.RegisterRequest;
 import com.healthpilot.server.auth.dto.RegisterResponse;
 import com.healthpilot.server.auth.service.AuthService;
@@ -35,5 +37,17 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
+    }
+
+    // 用户登录接口
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        LoginResponse response = authService.login(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(response)
+        );
     }
 }

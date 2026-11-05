@@ -2,6 +2,7 @@
 package com.healthpilot.server.common.exception;
 
 import com.healthpilot.server.auth.exception.EmailAlreadyExistsException;
+import com.healthpilot.server.auth.exception.InvalidCredentialsException;
 import com.healthpilot.server.common.ApiResponse;
 
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error(409, e.getMessage()));
+    }
+
+    // 登录失败
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCredentials(
+            InvalidCredentialsException e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(401, e.getMessage()));
     }
 
     // 处理 JSON 请求格式错误
