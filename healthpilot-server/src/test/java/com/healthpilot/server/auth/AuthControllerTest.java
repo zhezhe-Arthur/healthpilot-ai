@@ -39,7 +39,6 @@ class AuthControllerTest {
 
         String email = "test-" + UUID.randomUUID() + "@example.com";
         String password = "Example123!";
-
         String json = """
                 {
                     "email": "%s",
