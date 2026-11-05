@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface UserRepository
+        // 通用数据库操作
         extends JpaRepository<UserEntity, Long> {
 
     // 判断邮箱是否已注册
