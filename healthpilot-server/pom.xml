@@ -91,6 +91,12 @@
             <version>0.13.0</version>
         </dependency>
 
+        <!-- Spring Security：身份认证与接口访问控制 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
 
         <!-- 测试 -->
         <dependency>
