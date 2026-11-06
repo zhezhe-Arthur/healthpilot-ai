@@ -1,0 +1,5 @@
+# Created at 2026-11-05T17:50:30.260
+Boot Manifest-JAR contains absolute paths in classpath 'D:\AI\healthpilot-ai\healthpilot-server\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

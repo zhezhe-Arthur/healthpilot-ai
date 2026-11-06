@@ -27,3 +27,20 @@ server:
 jwt:
   secret-base64: ${JWT_SECRET_BASE64}
   expiration-seconds: 86400
+
+
+security:
+  login-guard:
+    # 使用独立密钥生成邮箱和IP的不可直接识别标识
+    key-base64: ${LOGIN_GUARD_KEY_BASE64}
+
+    # 同一IP每分钟最多30次登录尝试
+    ip-max-attempts: 30
+    ip-window-seconds: 60
+
+    # 同一邮箱15分钟内最多失败5次
+    account-max-failures: 5
+    account-window-seconds: 900
+
+    # 账号临时锁定15分钟
+    lock-seconds: 900

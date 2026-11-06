@@ -8,6 +8,7 @@ import com.healthpilot.server.auth.dto.RegisterResponse;
 import com.healthpilot.server.auth.service.AuthService;
 import com.healthpilot.server.common.ApiResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -42,9 +43,17 @@ public class AuthController {
     // 用户登录接口
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-            @Valid @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest
     ) {
-        LoginResponse response = authService.login(request);
+        // 使用Servlet提供的客户端IP
+        // 暂不信任客户端自行填写的X-Forwarded-For
+        String remoteIp = httpRequest.getRemoteAddr();
+
+        LoginResponse response = authService.login(
+                request,
+                remoteIp
+        );
 
         return ResponseEntity.ok(
                 ApiResponse.success(response)

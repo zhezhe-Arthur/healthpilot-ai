@@ -25,3 +25,17 @@ jwt:
 
 server:
   port: ${SERVER_PORT:8080}
+
+security:
+  login-guard:
+    # 仅用于自动化测试的固定密钥
+    key-base64: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+
+    # 测试环境使用较小的IP上限，便于验证限流
+    ip-max-attempts: 8
+    ip-window-seconds: 60
+
+    account-max-failures: 5
+    account-window-seconds: 900
+    lock-seconds: 900
+

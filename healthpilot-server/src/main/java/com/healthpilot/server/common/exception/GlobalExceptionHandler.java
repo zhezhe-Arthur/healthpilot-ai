@@ -3,6 +3,7 @@ package com.healthpilot.server.common.exception;
 
 import com.healthpilot.server.auth.exception.EmailAlreadyExistsException;
 import com.healthpilot.server.auth.exception.InvalidCredentialsException;
+import com.healthpilot.server.auth.exception.LoginRateLimitException;
 import com.healthpilot.server.common.ApiResponse;
 
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(401, e.getMessage()));
+    }
+
+    // 登录触发限流
+    @ExceptionHandler(LoginRateLimitException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRateLimit(
+            LoginRateLimitException e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(
+                        "Retry-After",
+                        String.valueOf(e.getRetryAfterSeconds())
+                )
+                .body(ApiResponse.error(429, e.getMessage()));
     }
 
     // 处理 JSON 请求格式错误

@@ -9,10 +9,12 @@ import com.healthpilot.server.auth.dto.LoginRequest;
 import com.healthpilot.server.auth.dto.LoginResponse;
 // 自定义异常：当邮箱已经被注册时抛出
 import com.healthpilot.server.auth.exception.EmailAlreadyExistsException;
+import com.healthpilot.server.auth.exception.LoginRateLimitException;
 
 import com.healthpilot.server.auth.exception.InvalidCredentialsException;
 import com.healthpilot.server.auth.security.JwtService;
 // 数据库用户实体类
+import com.healthpilot.server.auth.security.LoginGuardService;
 import com.healthpilot.server.user.entity.UserEntity;
 // 数据访问接口
 import com.healthpilot.server.user.repository.UserRepository;
@@ -38,16 +40,19 @@ public class AuthService {
 
     // JWT服务对象：这行很重要
     private final JwtService jwtService;
+    private final LoginGuardService loginGuardService;
 
     // 接收注册参数
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,
+            LoginGuardService loginGuardService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.loginGuardService = loginGuardService;
     }
 
     // 注册用户
@@ -90,35 +95,42 @@ public class AuthService {
         }
     }
 
-    // 用户登录：只读取用户数据，不修改数据库
-    @Transactional(readOnly = true)
-    public LoginResponse login(LoginRequest request) {
+    /**
+     * 登录入口
+     */
+    public LoginResponse login(
+            LoginRequest request,
+            String remoteIp
+    ) {
 
-        // 第一步：统一邮箱格式
-        String email = request.email()
-                .trim()
-                .toLowerCase(Locale.ROOT);
+        LoginGuardService.Result result =
+                loginGuardService.authenticate(
+                        request.email(),
+                        request.password(),
+                        remoteIp
+                );
 
-        // 第二步：根据邮箱查询数据库中的用户
-        // findByEmail返回Optional，可能有用户，也可能没有
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(InvalidCredentialsException::new);
+        // 登录尝试达到限制
+        if (result.status()
+                == LoginGuardService.Status.RATE_LIMITED) {
 
-        // 第三步：比较明文密码与数据库中的BCrypt哈希
-        boolean passwordMatched = passwordEncoder.matches(
-                request.password(),
-                user.getPasswordHash()
-        );
+            throw new LoginRateLimitException(
+                    result.retryAfterSeconds()
+            );
+        }
 
-        // 第四步：密码不匹配，登录失败
-        if (!passwordMatched) {
+        // 邮箱不存在或密码错误
+        if (result.status()
+                == LoginGuardService.Status.INVALID_CREDENTIALS) {
+
             throw new InvalidCredentialsException();
         }
 
-        // 第五步：验证成功，使用用户ID生成JWT
-        String accessToken = jwtService.generateToken(user.getId());
+        // 账号密码正确，签发JWT
+        String accessToken = jwtService.generateToken(
+                result.userId()
+        );
 
-        // 第六步：向Controller返回登录结果
         return new LoginResponse(
                 accessToken,
                 "Bearer",

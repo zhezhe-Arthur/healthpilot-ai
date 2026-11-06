@@ -21,6 +21,17 @@
 
     <properties>
         <java.version>17</java.version>
+        <!-- 修复Jackson 3反序列化相关漏洞 -->
+        <jackson-bom.version>3.1.8</jackson-bom.version>
+
+        <!-- 更新Jackson 2的依赖管理版本 -->
+        <jackson-2-bom.version>2.21.8</jackson-2-bom.version>
+
+        <!-- 修复MySQL Connector/J漏洞 -->
+        <mysql.version>26.10.0</mysql.version>
+
+        <!-- 修复Logback路径穿越漏洞及其后续相关问题 -->
+        <logback.version>1.6.5</logback.version>
     </properties>
 
     <dependencies>
