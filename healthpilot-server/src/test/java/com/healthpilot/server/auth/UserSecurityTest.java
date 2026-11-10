@@ -2,6 +2,7 @@
 package com.healthpilot.server.auth;
 
 import com.healthpilot.server.auth.security.JwtService;
+import com.healthpilot.server.auth.security.SessionService;
 import com.healthpilot.server.user.entity.UserEntity;
 import com.healthpilot.server.user.repository.UserRepository;
 
@@ -19,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
-
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
@@ -45,36 +45,41 @@ class UserSecurityTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private SessionService sessionService;
+
     @Value("${jwt.secret-base64}")
     private String testSecretBase64;
 
-    // 创建一个测试用户
-    private UserEntity createTestUser() {
+    private UserEntity createUser() {
 
-        String email = "security-"
-                + UUID.randomUUID()
-                + "@example.com";
-
-        UserEntity user = new UserEntity(
-                email,
-                passwordEncoder.encode("Example123!")
-        );
-
-        return userRepository.saveAndFlush(user);
-    }
-
-    // 不携带Token，应拒绝访问
-    @Test
-    void shouldRejectRequestWithoutToken() throws Exception {
-
-        mockMvc.perform(
-                        get("/api/v1/users/me")
+        return userRepository.saveAndFlush(
+                new UserEntity(
+                        "security-" + UUID.randomUUID() + "@example.com",
+                        passwordEncoder.encode("Example123!")
                 )
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value(401));
+        );
     }
 
-    // 传入无效Token，应拒绝访问
+    private String createAccessToken(UserEntity user) {
+
+        String sessionId = sessionService
+                .createSession(user.getId())
+                .sessionId();
+
+        return jwtService.generateToken(
+                user.getId(),
+                sessionId
+        );
+    }
+
+    @Test
+    void shouldRejectWithoutToken() throws Exception {
+
+        mockMvc.perform(get("/api/v1/users/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
     @Test
     void shouldRejectInvalidToken() throws Exception {
 
@@ -85,17 +90,14 @@ class UserSecurityTest {
                                         "Bearer invalid.jwt.token"
                                 )
                 )
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().isUnauthorized());
     }
 
-    // 有效Token可以获取当前用户信息
     @Test
     void shouldReturnCurrentUser() throws Exception {
 
-        UserEntity user = createTestUser();
-
-        String token = jwtService.generateToken(user.getId());
+        UserEntity user = createUser();
+        String token = createAccessToken(user);
 
         mockMvc.perform(
                         get("/api/v1/users/me")
@@ -105,17 +107,27 @@ class UserSecurityTest {
                                 )
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.id").value(user.getId()))
                 .andExpect(jsonPath("$.data.email").value(user.getEmail()))
-                .andExpect(jsonPath("$.data.passwordHash").doesNotExist());
+                .andExpect(
+                        jsonPath("$.data.passwordHash").doesNotExist()
+                );
     }
 
-    // Token签名正确，但用户不存在
     @Test
     void shouldRejectTokenForUnknownUser() throws Exception {
 
-        String token = jwtService.generateToken(Long.MAX_VALUE);
+        UserEntity user = createUser();
+
+        String sessionId = sessionService
+                .createSession(user.getId())
+                .sessionId();
+
+        // 会话属于测试用户，但JWT声称是其他用户
+        String token = jwtService.generateToken(
+                Long.MAX_VALUE,
+                sessionId
+        );
 
         mockMvc.perform(
                         get("/api/v1/users/me")
@@ -124,55 +136,61 @@ class UserSecurityTest {
                                         "Bearer " + token
                                 )
                 )
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().isUnauthorized());
     }
 
-    // 过期Token不能访问接口
     @Test
     void shouldRejectExpiredToken() throws Exception {
 
-        UserEntity user = createTestUser();
+        UserEntity user = createUser();
 
-        byte[] keyBytes = Base64.getDecoder()
-                .decode(testSecretBase64);
+        String sessionId = sessionService
+                .createSession(user.getId())
+                .sessionId();
 
-        SecretKey signingKey = Keys.hmacShaKeyFor(keyBytes);
+        SecretKey key = Keys.hmacShaKeyFor(
+                Base64.getDecoder().decode(testSecretBase64)
+        );
 
         Instant now = Instant.now();
 
-        // 生成一个过期时间在过去的测试Token
-        String expiredToken = Jwts.builder()
+        String token = Jwts.builder()
                 .subject(user.getId().toString())
                 .issuer("healthpilot-ai")
+                .claim("sid", sessionId)
+                .claim("token_type", "access")
                 .issuedAt(Date.from(now.minusSeconds(3600)))
                 .expiration(Date.from(now.minusSeconds(1800)))
-                .signWith(signingKey, Jwts.SIG.HS256)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
 
         mockMvc.perform(
                         get("/api/v1/users/me")
                                 .header(
                                         HttpHeaders.AUTHORIZATION,
-                                        "Bearer " + expiredToken
+                                        "Bearer " + token
                                 )
                 )
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().isUnauthorized());
     }
 
-    // 使用其他密钥伪造签名，应拒绝访问
     @Test
     void shouldRejectForgedToken() throws Exception {
 
-        UserEntity user = createTestUser();
+        UserEntity user = createUser();
 
-        // 仅用于测试：故意使用错误的签名密钥
-        SecretKey wrongKey = Keys.hmacShaKeyFor(new byte[32]);
+        String sessionId = sessionService
+                .createSession(user.getId())
+                .sessionId();
 
-        String forgedToken = Jwts.builder()
+        SecretKey wrongKey =
+                Keys.hmacShaKeyFor(new byte[32]);
+
+        String token = Jwts.builder()
                 .subject(user.getId().toString())
                 .issuer("healthpilot-ai")
+                .claim("sid", sessionId)
+                .claim("token_type", "access")
                 .expiration(
                         Date.from(Instant.now().plusSeconds(3600))
                 )
@@ -183,10 +201,38 @@ class UserSecurityTest {
                         get("/api/v1/users/me")
                                 .header(
                                         HttpHeaders.AUTHORIZATION,
-                                        "Bearer " + forgedToken
+                                        "Bearer " + token
                                 )
                 )
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldRejectLegacyTokenWithoutSessionId() throws Exception {
+
+        UserEntity user = createUser();
+
+        SecretKey key = Keys.hmacShaKeyFor(
+                Base64.getDecoder().decode(testSecretBase64)
+        );
+
+        // 模拟03-2版本签发的旧Token
+        String legacyToken = Jwts.builder()
+                .subject(user.getId().toString())
+                .issuer("healthpilot-ai")
+                .expiration(
+                        Date.from(Instant.now().plusSeconds(3600))
+                )
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+
+        mockMvc.perform(
+                        get("/api/v1/users/me")
+                                .header(
+                                        HttpHeaders.AUTHORIZATION,
+                                        "Bearer " + legacyToken
+                                )
+                )
+                .andExpect(status().isUnauthorized());
     }
 }

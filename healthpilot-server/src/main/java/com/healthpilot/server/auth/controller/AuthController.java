@@ -1,10 +1,8 @@
 
 package com.healthpilot.server.auth.controller;
 
-import com.healthpilot.server.auth.dto.LoginRequest;
-import com.healthpilot.server.auth.dto.LoginResponse;
-import com.healthpilot.server.auth.dto.RegisterRequest;
-import com.healthpilot.server.auth.dto.RegisterResponse;
+import com.healthpilot.server.auth.dto.*;
+import com.healthpilot.server.auth.security.AuthenticatedUser;
 import com.healthpilot.server.auth.service.AuthService;
 import com.healthpilot.server.common.ApiResponse;
 
@@ -13,6 +11,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +56,46 @@ public class AuthController {
 
         return ResponseEntity.ok(
                 ApiResponse.success(response)
+        );
+    }
+
+    // 刷新：使用Refresh Token，不需要Access Token
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refresh(
+            @Valid @RequestBody RefreshRequest request
+    ) {
+        LoginResponse response = authService.refresh(request);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 退出当前会话，需要有效Access Token
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @AuthenticationPrincipal AuthenticatedUser currentUser
+    ) {
+        authService.logout(currentUser);
+
+        return ResponseEntity.ok(
+                ApiResponse.success((Void) null)
+        );
+    }
+
+    // 撤销全部会话，需要有效Access Token和当前密码
+    @PostMapping("/logout-all")
+    public ResponseEntity<ApiResponse<Void>> logoutAll(
+            @AuthenticationPrincipal AuthenticatedUser currentUser,
+            @Valid @RequestBody LogoutAllRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        authService.logoutAll(
+                currentUser,
+                request,
+                httpRequest.getRemoteAddr()
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success((Void) null)
         );
     }
 }

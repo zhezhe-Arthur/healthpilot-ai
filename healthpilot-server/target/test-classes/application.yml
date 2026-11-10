@@ -21,7 +21,8 @@ spring:
 jwt:
   # 仅用于自动化测试，不用于生产环境
   secret-base64: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
-  expiration-seconds: 86400
+  expiration-seconds: 900
+  refresh-expiration-seconds: 604800
 
 server:
   port: ${SERVER_PORT:8080}

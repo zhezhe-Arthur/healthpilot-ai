@@ -26,7 +26,10 @@ server:
 
 jwt:
   secret-base64: ${JWT_SECRET_BASE64}
-  expiration-seconds: 86400
+  # Access Token：15分钟
+  expiration-seconds: 900
+  # Refresh Token所在会话：7天
+  refresh-expiration-seconds: 604800
 
 
 security:

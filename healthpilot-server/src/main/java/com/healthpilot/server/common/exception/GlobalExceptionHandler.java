@@ -12,6 +12,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.healthpilot.server.auth.exception.InvalidRefreshTokenException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -76,4 +77,15 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(ApiResponse.error(400, "请求JSON格式不正确"));
     }
+
+    // Refresh Token无效、过期、撤销或重放。
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidRefreshToken(
+            InvalidRefreshTokenException e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(401, e.getMessage()));
+    }
+
 }
