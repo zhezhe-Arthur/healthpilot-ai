@@ -14,6 +14,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.healthpilot.server.auth.exception.InvalidRefreshTokenException;
 
+import com.healthpilot.server.healthprofile.exception.HealthProfileBusinessException;
+import jakarta.persistence.OptimisticLockException;
+import org.springframework.dao.OptimisticLockingFailureException;
+
+import com.healthpilot.server.healthgoal.exception.HealthGoalBusinessException;
+
+import com.healthpilot.server.weeklyassessment.exception.WeeklyAssessmentBusinessException;
+
+import com.healthpilot.server.healthplan.exception.HealthPlanBusinessException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -87,5 +97,115 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(401, e.getMessage()));
     }
+
+
+
+    // 健康画像业务异常： 400 参数错误、404 未找到、409 重复创建或版本冲突。
+    @ExceptionHandler(HealthProfileBusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHealthProfile(
+            HealthProfileBusinessException e
+    ) {
+        HttpStatus status = switch (e.getReason()) {
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case INVALID_INPUT -> HttpStatus.BAD_REQUEST;
+            case ALREADY_EXISTS, VERSION_CONFLICT ->
+                    HttpStatus.CONFLICT;
+        };
+
+        return ResponseEntity
+                .status(status)
+                .body(
+                        ApiResponse.error(
+                                status.value(),
+                                e.getMessage()
+                        )
+                );
+    }
+
+    //  数据库层检测到真正并发更新冲突。
+    @ExceptionHandler({
+            OptimisticLockingFailureException.class,
+            OptimisticLockException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(
+            Exception e
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(
+                        ApiResponse.error(
+                                409,
+                                "数据已发生变化，请刷新后重试"
+                        )
+                );
+    }
+
+    /**
+     * 健康目标模块的业务异常。
+     * 1. NOT_FOUND：目标不存在或不属于当前用户，返回404
+     * 2. INVALID_INPUT：目标参数不合法，返回400
+     * 3. VERSION_CONFLICT：提交了旧版本数据，返回409
+     * 4. INVALID_STATUS：目标状态不允许修改，返回409
+     */
+    @ExceptionHandler(HealthGoalBusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHealthGoal(
+            HealthGoalBusinessException e
+    ) {
+        // 根据业务异常类型选择HTTP状态码
+        HttpStatus status = switch (e.getReason()) {
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case INVALID_INPUT -> HttpStatus.BAD_REQUEST;
+            case VERSION_CONFLICT, INVALID_STATUS ->
+                    HttpStatus.CONFLICT;
+        };
+
+        return ResponseEntity
+                .status(status)
+                .body(
+                        ApiResponse.error(
+                                status.value(),
+                                e.getMessage()
+                        )
+                );
+    }
+
+
+    // 每周健康评估业务异常
+    @ExceptionHandler(WeeklyAssessmentBusinessException.class)
+    public ResponseEntity<?> handleWeeklyAssessmentException(
+            WeeklyAssessmentBusinessException e
+    ) {
+        HttpStatus status = switch (e.getReason()) {
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case INVALID_INPUT -> HttpStatus.BAD_REQUEST;
+            case ALREADY_EXISTS, VERSION_CONFLICT -> HttpStatus.CONFLICT;
+        };
+
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(status.value(), e.getMessage()));
+    }
+
+    // 计划查询错误
+    @ExceptionHandler(HealthPlanBusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHealthPlanBusiness(
+            HealthPlanBusinessException e
+    ) {
+        HttpStatus status = switch (e.getReason()) {
+
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+
+            case INVALID_INPUT -> HttpStatus.BAD_REQUEST;
+
+            case VERSION_CONFLICT, PLAN_CONFIRMED ->
+                    HttpStatus.CONFLICT;
+        };
+
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(
+                        status.value(),
+                        e.getMessage()
+                ));
+    }
+
 
 }

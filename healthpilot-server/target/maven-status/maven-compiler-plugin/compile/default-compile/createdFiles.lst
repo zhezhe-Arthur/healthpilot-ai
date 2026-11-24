@@ -1,0 +1,11 @@
+com\healthpilot\server\weeklyassessment\dto\WeeklyAssessmentResponse.class
+com\healthpilot\server\weeklyassessment\dto\WeeklyFeedbackInput.class
+com\healthpilot\server\weeklyassessment\dto\WeeklyHealthMetricsInput.class
+com\healthpilot\server\weeklyassessment\dto\UpdateWeeklyAssessmentRequest.class
+com\healthpilot\server\weeklyassessment\dto\CreateWeeklyAssessmentRequest.class
+com\healthpilot\server\weeklyassessment\exception\WeeklyAssessmentBusinessException.class
+com\healthpilot\server\weeklyassessment\dto\WeeklyFeedbackResponse.class
+com\healthpilot\server\weeklyassessment\service\WeeklyAssessmentService.class
+com\healthpilot\server\weeklyassessment\exception\WeeklyAssessmentBusinessException$Reason.class
+com\healthpilot\server\weeklyassessment\dto\UpdateWeeklyFeedbackInput.class
+com\healthpilot\server\weeklyassessment\dto\HealthProfileSnapshotResponse.class
