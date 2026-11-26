@@ -21,7 +21,7 @@ description: 整理用户提供的慢性病信息、已有医嘱、生活限制�
 
 所有病种均可进入通用信息整理流程。
 是否能够提供病种专属注意事项，
-取决于是否具备对应的已审核资料。
+取决于是否具备对应的review_status=source_cross_checked 且满足索引准入条件的资料。
 
 ## 二、与其他组件的分工
 
@@ -60,7 +60,7 @@ description: 整理用户提供的慢性病信息、已有医嘱、生活限制�
 涉及记录整理、事项状态和复查时间时：
 - 读取 references/follow-up-rules.md。
 
-存在已审核的病种资料时，
+存在review_status=source_cross_checked 且满足索引准入条件的病种资料时，
 仅按实际相关性读取对应部分。
 
 文件不存在或不可用时：
@@ -147,7 +147,7 @@ description: 整理用户提供的慢性病信息、已有医嘱、生活限制�
 ### 5. 判断能否提供新增注意事项
 
 依据condition-index.md确认：
-- 是否存在已审核资料。
+- 是否存在review_status=source_cross_checked 且满足索引准入条件的资料。
 - 用户是否符合适用范围。
 - 是否与已有个人安排冲突。
 

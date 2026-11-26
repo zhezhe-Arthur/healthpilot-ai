@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "manifest_version": "0.2.0",
+  "manifest_version": "0.2.1",
   "skill": "chronic_condition_support",
   "updated_at": "2026-11-26",
   "description": "现有病种资料包登记；版本为项目资料包版本，不是医学指南版本。",
@@ -448,5 +448,7 @@
       "review_record": "docs/research/chronic-condition-batch3-2026-11-26.md",
       "review_record_path_base": "project_root"
     }
-  ]
+  ],
+  "clinical_review_status": "not_performed",
+  "model_behavior_validation_status": "not_performed"
 }

@@ -2,7 +2,7 @@
 
 版本：草稿v0.6；资料核对日期：2026-11-26
 
-机器可读清单：[conditions/manifest.json](conditions/manifest.json)。版本 0.2.0，登记 20 个资料包及 80 份文件，供后续加载器选择和校验；当前尚未接入自动加载。
+机器可读清单：[conditions/manifest.json](conditions/manifest.json)。版本 0.2.1，登记 20 个资料包及 80 份文件，供后续加载器选择和校验；当前尚未接入自动加载。
 清单别名仅供候选检索，不代表诊断或医学等价。选择后先读 limitations.md，再读 sources.md 及实际需要的内容。
 新增、删除、改名或调整资料适用范围/核对状态时，同步维护本索引与清单；详细边界以对应资料正文为准。
 
@@ -26,8 +26,8 @@
 
 ## 二、病种专属建议的准入
 
-只有具备对应已审核资料，
-且用户满足适用范围时，
+只有具备对应source_cross_checked资料，
+且文件齐全、用户满足适用范围并已读取 limitations 时，
 才提供新增的病种专属注意事项。
 
 没有对应资料时：
@@ -36,16 +36,18 @@
 - 可以传递明确限制。
 - 不凭模型记忆新增检查、数值或治疗性方案。
 
-临时搜索到一篇文章不等于资料已审核。
+临时搜索到一篇文章不等于资料source_cross_checked。
 
 ## 三、资料状态
 
-使用：
-- 未审核。
-- 已审核，附适用范围及核对信息。
-- 暂停使用，附原因。
+唯一准入状态使用 manifest.json 中的 review_status；中文“已核对”仅为 source_cross_checked 的展示文案，不是额外状态。未知状态一律不准入。
 
-当前没有列出的病种默认未审核。
+使用：
+- unreviewed。
+- source_cross_checked，附适用范围及核对信息。
+- suspended，附原因。
+
+当前没有列出的病种默认unreviewed。
 病名识别成功不改变审核状态。
 
 ### 已有批次的限定范围资料
@@ -160,4 +162,6 @@ https://www.who.int/news-room/fact-sheets/detail/noncommunicable-diseases
 - 来源变化或失效时重新核对。
 - 不把访问日期当作发布日期。
 - 不把历史验证说成本次重新验证。
-- 未审核规则不得通过其他Skill间接变成确定建议。
+- unreviewed规则不得通过其他Skill间接变成确定建议。
+
+临床审核与模型行为验证独立记录：clinical_review_status、clinical_validation_status、model_behavior_validation_status 均不能由 source_cross_checked 推导。当前三者均为 not_performed。清单与正文冲突时暂停受影响新增建议，不能用展示文案绕过清单状态。

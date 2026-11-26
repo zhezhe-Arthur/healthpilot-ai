@@ -1,7 +1,7 @@
 # HealthPilot AI 开发手册
 
-> 版本：v1.0 · 2026-11-25  
-> 范围：第一章 Server（Java 服务）；第二章 Docker（WSL2、Docker Desktop、OpenSandbox）  
+> 版本：v1.1 · 2026-11-25
+> 范围：第一章 Server（Java 服务）；第二章 Docker（WSL2、Docker Desktop、OpenSandbox）；第三章 HealthPilot-agent（Python AI 服务）
 > 本手册记录**项目开发架构、设计约束、实现状态及技术原理**。日常启动与故障处理见《HealthPilot AI 运行手册》。
 
 ## 第一章 Server（Java 服务）
@@ -24,7 +24,7 @@ Java Spring Boot 业务服务（healthpilot-server，:8080）
   └─ MySQL 8
        │ 后续由 Java 主动请求（尚未联调）
        ▼
-Python FastAPI + DeepAgents（待开发）
+Python FastAPI + DeepAgents（:8001，基础调用已完成）
   ├─ 单 Agent + Skills
   ├─ 只读健康数据工具与安全护栏
   └─ 按需调用 OpenSandbox（:8090，环境已部署）
@@ -51,7 +51,7 @@ Python FastAPI + DeepAgents（待开发）
 | 迁移 | Flyway |
 | 后端源码目录 | `D:\AI\healthpilot-ai\healthpilot-server` |
 | Java 服务端口 | `8080` |
-| Agent 技术选型 | Python + FastAPI + DeepAgents / LangGraph（待开发） |
+| Agent 技术选型 | Python + FastAPI + DeepAgents / LangGraph（基础调用已完成，Skills 待接入） |
 | 沙箱服务 | OpenSandbox Server，端口 `8090`（部署已验证） |
 
 业务服务的启动入口是 `HealthPilotServerApplication`。源码基础包为 `com.healthpilot.server`，七天计划功能位于 `com.healthpilot.server.healthplan`。
@@ -246,3 +246,83 @@ osb sandbox create
 ---
 
 **文档维护约定：**新增功能时同步更新实现状态；配置、路径、命令以本机实际验证为准。部署操作与日常启停流程统一收录在《HealthPilot AI 运行手册》。
+
+## 第三章 HealthPilot-agent（Python AI 服务）
+
+### 3.1 定位与服务边界
+
+Agent 基于健康档案、健康目标和每周反馈生成连续七天的健康计划。采用 **单 Agent + Skills**，Java 负责授权、业务校验和持久化；生成结果经 Java 保存为 DRAFT，用户确认后才变为 CONFIRMED。没有每日手动打卡。
+
+目标链路为：Java（8080）→ FastAPI Agent（8001）→ DeepSeek / DeepAgents → 结构化计划 → Java。当前仅完成独立服务骨架和模型基础调用，尚未完成这条业务链路。OpenSandbox（8090）仅在需要隔离执行时接入，当前 Agent 未调用沙箱。
+
+### 3.2 当前代码结构与依赖
+
+项目目录：`D:\AI\healthpilot-ai\healthpilot-agent`。
+
+| 文件 / 目录 | 当前职责 |
+|---|---|
+| `app/main.py` | FastAPI 入口，提供 `GET /health` |
+| `app/config.py` | 使用 pydantic-settings 加载环境变量和当前工作目录中的 .env |
+| `app/agent/health_agent.py` | 模型初始化、角色提示和单 Agent 创建 |
+| `app/api/`、`app/schemas/` | 当前仅有包初始化文件，业务 API 和计划 Schema 待开发 |
+| `test_agent.py` | 真实模型调用的手工冒烟脚本，无自动化断言 |
+| `requirements.txt` | fastapi、uvicorn[standard]、pydantic-settings、deepagents、langchain-openai |
+| `.env.example` | 已存在但为空，配置示例尚待补齐 |
+| `.env`、`.venv/` | 本地配置与独立虚拟环境，不提交 Git |
+
+依赖清单尚未固定版本；复现时应记录实际安装版本。此次未检查本地密钥内容。
+
+### 3.3 模型接入与单 Agent 配置
+
+当前通过 `ChatOpenAI` 连接 `https://api.deepseek.com`，模型名读取 `DEEPSEEK_MODEL`，代码默认值为 `deepseek-flash`。这里只记录项目配置，不将模型别名与某个厂商版本永久绑定。
+
+现有调用参数为 `temperature=0.3`、`timeout=60`、`max_retries=2`。代码通过 HarnessProfile 禁用默认通用子 Agent，同时传入 `subagents=[]`。当前 `tools=[]` 表示未添加业务自定义工具，不代表框架没有内置工具。
+
+系统提示要求使用中文、不编造缺失健康信息、只提供一般健康管理建议、不进行疾病诊断或处方治疗，并遵循七天计划、每周反馈、用户确认规则。这些是提示层约束；程序级安全校验仍待实现。FastAPI 当前没有导入或调用 health_agent，健康检查成功不能证明模型服务可用。
+
+### 3.4 六个 Skills 的文件与接入状态
+
+| Skill | 规划职责 |
+|---|---|
+| exercise | 根据运动基础、限制条件和反馈制定渐进运动安排 |
+| nutrition | 结合饮食偏好、过敏与限制制定可执行的饮食行动 |
+| sleep | 根据作息和睡眠反馈制定一般性改善建议 |
+| mental_health | 提供低负担的压力管理与心理健康支持 |
+| weekly_planning | 综合各领域及慢性病约束，依据已知反馈编排七天计划；无反馈时保守更新，不猜测完成量 |
+| chronic_condition_support | 慢性病管理和记录：整理已有安排、限制、记录、待办及未知项；不诊断或用药 |
+
+2026-11-26 本地检查确认六个 Skill 各已有 SKILL.md、safety.md 和两份基础参考文件，共 24 份用户已有文件。现有 health_agent.py 尚未配置 Skills 加载；文件存在不等于运行接入已完成。
+
+2026-11-26 新增高血压、2 型糖尿病、慢性肾病首批扩展资料，各四份文件，位于 chronic_condition_support/references/conditions/。采用 WHO、NIH/NHLBI、NIH/NIDDK、CDC，完成来源身份/版本核实及跨机构内容对照，详见 [核对记录](research/chronic-condition-sources-2026-11-26.md)。仅支持限定范围通用生活注意与已有安排整理，不提供诊断、用药、个人阈值或统一复查周期；不代表临床审核或全病种覆盖。
+
+2026-11-26 第二批新增血脂异常、痛风、脂肪性肝病、肥胖症、骨质疏松、骨关节炎六个资料包，共 24 份文件。累计九个病种、36 份参考文件；完成限定范围的来源与内容核对，详见 [第二批记录](research/chronic-condition-batch2-2026-11-26.md)。保留原 Skills 架构；旧来源和跨来源差异已标注。哮喘、慢阻肺、冠心病、心衰及卒中后管理资料尚待后续完成，复杂专科暂不开展。
+
+2026-11-26 第三批完成哮喘、慢阻肺、冠心病、心力衰竭、卒中后管理五项资料，共 20 份文件，累计 14 个病种/管理主题、56 份参考文件。此前第二批记录中的待办已在本批完成；复杂专科仍不开展。[第三批核对记录](research/chronic-condition-batch3-2026-11-26.md)记录 NHLBI/NHS 双轮核对、旧来源和不采用内容。保留个人监测频率，不能将每周产品反馈替代医学监测；心肺及卒中康复只整理已有专业安排，不自行制定处方。
+
+会话提出的加载方案是用 CompositeBackend 分离临时状态与 Skills 文件，将 Skills 目录映射到 `/skills/`，限制写入并避免暴露项目根目录及 .env。具体 API 须按安装版本核对。验收需看到实际读取 SKILL.md 的工具调用，不能只根据模型回答判断加载成功。
+
+### 3.5 开发进度与下一步
+
+2026-11-26 审查修复：正式计划统一为 Java 提供的周一起始自然周，ISO 星期 1—7；运动与综合规划共用 missing-feedback-policy.md，区分条件性草稿、暂停澄清及急性安全分流。资料准入统一使用 source_cross_checked / unreviewed / suspended，临床审核、临床验证及模型行为验证分别为 not_performed。清单版本 0.2.1。新增 [跨 Skill 验收案例](research/skills-contract-acceptance.md)，仅静态检查，行为验收尚未执行。Skills 加载器与 Java 接口未修改；未调用收费模型。两份手册已在本地更新，不代表已提交或已同步远程，run.md 原有忽略规则保留。
+
+
+2026-11-26 第四批根据用户新授权，增加甲减、甲亢、类风湿关节炎、慢性乙肝、乳腺癌治疗后随访支持、结直肠癌治疗后随访支持，共 24 份资料。当前累计 20 个病种/管理主题、80 份参考文件；清单版本 0.2.0（结构仍为 1.0.0）。这更新了此前暂不扩展专科的范围决定，但仅开放上述限定支持；透析/移植及活动性肿瘤治疗仍未覆盖。[第四批核对记录](research/chronic-condition-batch4-2026-11-26.md)列明跨机构核对、404 替代来源及旧版本限制。当前检查通过清单与路径完整性，不代表临床审核或运行加载完成。
+
+2026-11-26 增加 `chronic_condition_support/references/conditions/manifest.json`，登记现有 14 个资料包。`schema_version` 表示清单结构版本，`manifest_version`/`package_version` 表示项目清单/资料包版本，不是指南版本。每项包含 ID、中文名称、检索别名、核对日期/状态、适用与排除范围摘要及四份文件路径。`files` 路径相对于清单目录，`review_record` 相对于项目根目录。别名只用于检索，不自动推导诊断或替换医学名称；详细规则仍需读取 limitations 和 sources。`source_cross_checked` 不代表临床认证。
+
+清单已完成 JSON 解析、ID 唯一性、目录覆盖及引用文件检查；未新增运行时加载代码。后续加载器应处理未知版本、缺失文件、暂停/未核对状态和不适用人群。新增或修改资料包时同步更新清单及 condition-index；当前未自动执行这些准入校验。
+
+| 步骤 | 当前状态 | 后续验收 |
+|---|---|---|
+| 05-3.2.1 FastAPI 骨架 | 代码已存在；会话有用户提供的成功启动日志 | 健康检查响应与代码一致 |
+| 05-3.2.2 DeepAgents + Skills | 模型基础调用曾由用户验证；六个 Skills 文件已存在，四批 20 个病种/管理主题资料已做限定范围核对；加载与行为验收未完成 | 实际读取 Skills，生成符合业务要求的计划 |
+| 05-3.2.3 结构化输出与安全校验 | 待开发 | Pydantic 计划 Schema 与关键安全约束通过验证 |
+| 05-3.2.4 Java 联调 | 待开发 | Java 调用 Agent、校验、保存 DRAFT、用户确认 |
+
+下一步继续 **05-3.2.2：完善并接入六个健康 Skills**，验证真实资料读取、多病冲突和缺失反馈处理。之后定义七天计划 Schema、校验输出，再建立 Java 调用接口。JAVA_SERVER_URL 配置存在不代表已经实现通信。Java 负责通知与持久化；本次仅增加参考资料和文档，未实现定时提醒或重新验证模型服务。
+
+### 3.6 资料来源与维护
+
+2026-11-25 根据会话《AI医疗项目规划》（ID：`6ae46934-2834-83ee-8cfe-9391a7fcabea`）本次接口返回的最近 5 轮及本地源码更新。会话包括用户提供的 Uvicorn 启动日志与 test_agent.py 模型回复；本次文档任务未重新启动服务或调用模型。
+
+长期维护固定使用 development.md 与 run.md。根目录 README 和 Agent README 仍含早期日/月计划等描述，后续应按现行每周反馈方案整理。
