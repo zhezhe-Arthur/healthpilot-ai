@@ -1,0 +1,452 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_version": "0.2.0",
+  "skill": "chronic_condition_support",
+  "updated_at": "2026-11-26",
+  "description": "现有病种资料包登记；版本为项目资料包版本，不是医学指南版本。",
+  "path_base": "manifest_directory",
+  "clinical_validation_status": "not_performed",
+  "runtime_loading_status": "not_integrated",
+  "review_status_definitions": {
+    "source_cross_checked": "限定范围的官方来源核实及跨机构内容对照；非医师审核、临床认证或全主题覆盖",
+    "unreviewed": "未完成资料核对，不新增病种专属建议",
+    "suspended": "暂停用于新增建议，需复核"
+  },
+  "selection_rules": [
+    "aliases 仅用于候选检索，不表示诊断或医学等价；尤其不得互换 NAFLD/NASH/MASLD/MASH",
+    "名称匹配后必须核对适用范围并读取 limitations；详细边界以文件正文为准",
+    "只按本次需求读取相关资料，不默认加载全部文件",
+    "未知、未核对、暂停或文件缺失时仅整理已有信息；明显紧急情况不因文件缺失延误求助",
+    "不诊断、不用药、不生成个人阈值或统一复查周期；每周反馈不替代已有医学监测"
+  ],
+  "read_order": [
+    "limitations",
+    "sources",
+    "daily_care",
+    "monitoring_and_follow_up"
+  ],
+  "packages": [
+    {
+      "id": "hypothyroidism",
+      "name_zh": "甲状腺功能减退",
+      "aliases": [
+        "甲减",
+        "hypothyroidism"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已确诊非孕成年人的一般记录与专业随诊支持",
+      "exclusion_summary": "儿童、孕产期、疑似未确诊、复杂垂体病及急性严重异常",
+      "files": {
+        "sources": "hypothyroidism/sources.md",
+        "daily_care": "hypothyroidism/daily-care.md",
+        "monitoring_and_follow_up": "hypothyroidism/monitoring-and-follow-up.md",
+        "limitations": "hypothyroidism/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch4-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "hyperthyroidism",
+      "name_zh": "甲状腺功能亢进",
+      "aliases": [
+        "甲亢",
+        "hyperthyroidism"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已确诊非孕成年人的一般记录与就诊沟通",
+      "exclusion_summary": "儿童、孕产期、急性严重不适、放射性碘或术后专属处置",
+      "files": {
+        "sources": "hyperthyroidism/sources.md",
+        "daily_care": "hyperthyroidism/daily-care.md",
+        "monitoring_and_follow_up": "hyperthyroidism/monitoring-and-follow-up.md",
+        "limitations": "hyperthyroidism/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch4-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "rheumatoid-arthritis",
+      "name_zh": "类风湿关节炎",
+      "aliases": [
+        "rheumatoid arthritis"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已确诊成年人的关节保护和已有安排整理",
+      "exclusion_summary": "未确诊关节痛、急性红肿热痛的病因判断、重度系统受累或术后康复处方",
+      "files": {
+        "sources": "rheumatoid-arthritis/sources.md",
+        "daily_care": "rheumatoid-arthritis/daily-care.md",
+        "monitoring_and_follow_up": "rheumatoid-arthritis/monitoring-and-follow-up.md",
+        "limitations": "rheumatoid-arthritis/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch4-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "chronic-hepatitis-b",
+      "name_zh": "慢性乙型肝炎",
+      "aliases": [
+        "慢性乙肝",
+        "chronic hepatitis B"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已有专业诊断成人的记录、随诊沟通与有限健康教育",
+      "exclusion_summary": "急性乙肝、未明确急慢性、孕产期母婴阻断、肝硬化失代偿、肝癌及移植专属方案",
+      "files": {
+        "sources": "chronic-hepatitis-b/sources.md",
+        "daily_care": "chronic-hepatitis-b/daily-care.md",
+        "monitoring_and_follow_up": "chronic-hepatitis-b/monitoring-and-follow-up.md",
+        "limitations": "chronic-hepatitis-b/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch4-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "breast-cancer-follow-up",
+      "name_zh": "乳腺癌治疗后随访支持",
+      "aliases": [
+        "乳腺癌治疗后",
+        "breast cancer follow-up"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "成年乳腺癌用户进入专业团队安排的治疗后随访阶段，仅整理既有安排",
+      "exclusion_summary": "活动性治疗决策、疑似肿瘤诊断、分期/复发判断、转移或急性并发症处置",
+      "files": {
+        "sources": "breast-cancer-follow-up/sources.md",
+        "daily_care": "breast-cancer-follow-up/daily-care.md",
+        "monitoring_and_follow_up": "breast-cancer-follow-up/monitoring-and-follow-up.md",
+        "limitations": "breast-cancer-follow-up/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch4-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "colorectal-cancer-follow-up",
+      "name_zh": "结直肠癌治疗后随访支持",
+      "aliases": [
+        "结直肠癌治疗后",
+        "结肠癌治疗后",
+        "直肠癌治疗后",
+        "colorectal cancer follow-up"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "成年结直肠癌用户治疗后既有随访与生活限制整理",
+      "exclusion_summary": "活动性治疗决策、肿瘤分期/复发判断、造口操作或急性并发症处置",
+      "files": {
+        "sources": "colorectal-cancer-follow-up/sources.md",
+        "daily_care": "colorectal-cancer-follow-up/daily-care.md",
+        "monitoring_and_follow_up": "colorectal-cancer-follow-up/monitoring-and-follow-up.md",
+        "limitations": "colorectal-cancer-follow-up/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch4-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "hypertension",
+      "name_zh": "高血压",
+      "aliases": [
+        "hypertension"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "非孕成年人的常规生活支持",
+      "exclusion_summary": "儿童、妊娠、急性不适及复杂专科情形",
+      "files": {
+        "sources": "hypertension/sources.md",
+        "daily_care": "hypertension/daily-care.md",
+        "monitoring_and_follow_up": "hypertension/monitoring-and-follow-up.md",
+        "limitations": "hypertension/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-sources-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "type-2-diabetes",
+      "name_zh": "2 型糖尿病",
+      "aliases": [
+        "2型糖尿病",
+        "二型糖尿病",
+        "type 2 diabetes",
+        "T2D"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已确诊非孕成年 2 型糖尿病的一般支持",
+      "exclusion_summary": "1 型、妊娠期糖尿病、儿童、未明确分型或急性代谢异常",
+      "files": {
+        "sources": "type-2-diabetes/sources.md",
+        "daily_care": "type-2-diabetes/daily-care.md",
+        "monitoring_and_follow_up": "type-2-diabetes/monitoring-and-follow-up.md",
+        "limitations": "type-2-diabetes/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-sources-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "chronic-kidney-disease",
+      "name_zh": "慢性肾病",
+      "aliases": [
+        "慢性肾脏病",
+        "CKD"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "非孕成年、非透析常规管理的通用支持",
+      "exclusion_summary": "透析、移植、急性肾损伤、儿童、妊娠及复杂病情",
+      "files": {
+        "sources": "chronic-kidney-disease/sources.md",
+        "daily_care": "chronic-kidney-disease/daily-care.md",
+        "monitoring_and_follow_up": "chronic-kidney-disease/monitoring-and-follow-up.md",
+        "limitations": "chronic-kidney-disease/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-sources-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "dyslipidemia",
+      "name_zh": "血脂异常",
+      "aliases": [
+        "dyslipidemia"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "成人常见高胆固醇相关生活支持",
+      "exclusion_summary": "严重高甘油三酯、家族性脂质代谢病及复杂专科方案",
+      "files": {
+        "sources": "dyslipidemia/sources.md",
+        "daily_care": "dyslipidemia/daily-care.md",
+        "monitoring_and_follow_up": "dyslipidemia/monitoring-and-follow-up.md",
+        "limitations": "dyslipidemia/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch2-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "gout",
+      "name_zh": "痛风",
+      "aliases": [
+        "gout"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已确诊成年痛风间歇期生活支持",
+      "exclusion_summary": "仅高尿酸血症、未明确诊断、新发或改变性质的关节症状、急性期方案",
+      "files": {
+        "sources": "gout/sources.md",
+        "daily_care": "gout/daily-care.md",
+        "monitoring_and_follow_up": "gout/monitoring-and-follow-up.md",
+        "limitations": "gout/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch2-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "fatty-liver-disease",
+      "name_zh": "脂肪性肝病",
+      "aliases": [
+        "脂肪肝",
+        "NAFLD",
+        "MASLD",
+        "NASH",
+        "MASH"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "专业人员识别的非酒精性/代谢相关脂肪性肝病一般支持",
+      "exclusion_summary": "酒精相关肝病、肝炎、肝硬化、失代偿及原因不明肝功能异常",
+      "files": {
+        "sources": "fatty-liver-disease/sources.md",
+        "daily_care": "fatty-liver-disease/daily-care.md",
+        "monitoring_and_follow_up": "fatty-liver-disease/monitoring-and-follow-up.md",
+        "limitations": "fatty-liver-disease/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch2-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "obesity",
+      "name_zh": "肥胖症",
+      "aliases": [
+        "肥胖",
+        "obesity"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "非孕成人的一般生活管理支持",
+      "exclusion_summary": "儿童、孕产期、进食障碍风险、术后及复杂专科方案",
+      "files": {
+        "sources": "obesity/sources.md",
+        "daily_care": "obesity/daily-care.md",
+        "monitoring_and_follow_up": "obesity/monitoring-and-follow-up.md",
+        "limitations": "obesity/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch2-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "osteoporosis",
+      "name_zh": "骨质疏松",
+      "aliases": [
+        "骨质疏松症",
+        "osteoporosis"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已诊断成人的日常防跌倒与记录支持",
+      "exclusion_summary": "疑似新骨折、近期骨折、明显脊柱问题及术后运动方案",
+      "files": {
+        "sources": "osteoporosis/sources.md",
+        "daily_care": "osteoporosis/daily-care.md",
+        "monitoring_and_follow_up": "osteoporosis/monitoring-and-follow-up.md",
+        "limitations": "osteoporosis/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch2-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "osteoarthritis",
+      "name_zh": "骨关节炎",
+      "aliases": [
+        "osteoarthritis"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已确诊成人骨关节炎的通用生活支持",
+      "exclusion_summary": "类风湿关节炎、感染、痛风、急性损伤及关节置换术后方案",
+      "files": {
+        "sources": "osteoarthritis/sources.md",
+        "daily_care": "osteoarthritis/daily-care.md",
+        "monitoring_and_follow_up": "osteoarthritis/monitoring-and-follow-up.md",
+        "limitations": "osteoarthritis/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch2-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "asthma",
+      "name_zh": "哮喘",
+      "aliases": [
+        "asthma"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已有诊断非孕成年人的常规生活支持",
+      "exclusion_summary": "儿童、妊娠、重症专科方案和急性发作治疗",
+      "files": {
+        "sources": "asthma/sources.md",
+        "daily_care": "asthma/daily-care.md",
+        "monitoring_and_follow_up": "asthma/monitoring-and-follow-up.md",
+        "limitations": "asthma/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch3-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "copd",
+      "name_zh": "慢阻肺",
+      "aliases": [
+        "慢性阻塞性肺疾病",
+        "COPD"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已确诊成人的常规支持",
+      "exclusion_summary": "急性加重、近期住院及复杂氧疗管理的新方案",
+      "files": {
+        "sources": "copd/sources.md",
+        "daily_care": "copd/daily-care.md",
+        "monitoring_and_follow_up": "copd/monitoring-and-follow-up.md",
+        "limitations": "copd/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch3-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "coronary-heart-disease",
+      "name_zh": "冠心病",
+      "aliases": [
+        "冠状动脉粥样硬化性心脏病",
+        "coronary heart disease"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "已有诊断、适合常规管理成年人的生活支持",
+      "exclusion_summary": "近期心梗、介入、手术或不稳定症状的自主康复决策",
+      "files": {
+        "sources": "coronary-heart-disease/sources.md",
+        "daily_care": "coronary-heart-disease/daily-care.md",
+        "monitoring_and_follow_up": "coronary-heart-disease/monitoring-and-follow-up.md",
+        "limitations": "coronary-heart-disease/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch3-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "heart-failure",
+      "name_zh": "心力衰竭",
+      "aliases": [
+        "心衰",
+        "heart failure"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "成年人的已有信息与常规安排整理",
+      "exclusion_summary": "急性失代偿、近期住院、器械或移植相关新方案",
+      "files": {
+        "sources": "heart-failure/sources.md",
+        "daily_care": "heart-failure/daily-care.md",
+        "monitoring_and_follow_up": "heart-failure/monitoring-and-follow-up.md",
+        "limitations": "heart-failure/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch3-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    },
+    {
+      "id": "post-stroke",
+      "name_zh": "卒中后管理",
+      "aliases": [
+        "脑卒中后管理",
+        "卒中康复",
+        "post-stroke"
+      ],
+      "package_version": "0.1.0",
+      "review_status": "source_cross_checked",
+      "last_verified_at": "2026-11-26",
+      "scope_summary": "成年卒中后既有康复安排的整理与支持",
+      "exclusion_summary": "急性卒中治疗、短暂性脑缺血发作自动归类及自主康复处方",
+      "files": {
+        "sources": "post-stroke/sources.md",
+        "daily_care": "post-stroke/daily-care.md",
+        "monitoring_and_follow_up": "post-stroke/monitoring-and-follow-up.md",
+        "limitations": "post-stroke/limitations.md"
+      },
+      "review_record": "docs/research/chronic-condition-batch3-2026-11-26.md",
+      "review_record_path_base": "project_root"
+    }
+  ]
+}
