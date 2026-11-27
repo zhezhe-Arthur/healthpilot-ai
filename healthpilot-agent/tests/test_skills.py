@@ -59,3 +59,21 @@ def test_skill_metadata(skill_name):
 
     # 必须包含实际技能说明
     assert match.group(2).strip(), f"{skill_name} 正文不能为空"
+
+
+def test_internal_file_references_exist():
+    """检查 Markdown 链接和正文中的路径，不请求外部网址。"""
+    for source in SKILLS_DIR.rglob("*.md"):
+        content = re.sub(r"https?://[^\s<>`）)]+", "", source.read_text(encoding="utf-8"))
+        references = re.findall(r"(?<![A-Za-z0-9_./])(?:\.{1,2}/|/skills/|references/)[A-Za-z0-9_./-]+\.md", content)
+        references += re.findall(r"\]\(([^)]+\.md)(?:#[^)]*)?\)", content)
+        for reference in references:
+            target = (SKILLS_DIR / reference.removeprefix("/skills/")) if reference.startswith("/skills/") else (source.parent / reference)
+            assert target.resolve().is_relative_to(SKILLS_DIR.resolve()), f"引用超出 Skills：{source}: {reference}"
+            assert target.is_file(), f"引用不存在：{source}: {reference}"
+
+
+def test_smoke_script_skill_paths_exist():
+    script = Path(__file__).with_name("test_agent.py").read_text(encoding="utf-8")
+    for reference in re.findall(r"/skills/([A-Za-z0-9_./-]+\.md)", script):
+        assert (SKILLS_DIR / reference).is_file(), reference

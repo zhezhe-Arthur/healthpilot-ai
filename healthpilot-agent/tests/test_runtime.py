@@ -9,6 +9,7 @@ from langchain_core.messages import (
 )
 
 from app import runtime
+from tests.plan_fixtures import plan_request
 
 from app.middleware.safety_middleware import (
     SafetyGuardException,
@@ -214,8 +215,7 @@ def test_runtime_safety_exception(
         )
     else:
         result = runtime.run_weekly_plan(
-            "模拟计划请求",
-            mode="MANUAL",
+            plan_request("模拟计划请求", mode="MANUAL"),
             agent=agent,
         )
 
@@ -252,8 +252,7 @@ def test_runtime_safety_service_error(agent_type):
         )
     else:
         result = runtime.run_weekly_plan(
-            "生成健康计划",
-            mode="MANUAL",
+            plan_request("生成健康计划", mode="MANUAL"),
             agent=agent,
         )
 
@@ -415,8 +414,7 @@ def test_weekly_plan_ready(plan_agent):
     """合法计划应通过真实 Plan Guard 校验。"""
 
     result = runtime.run_weekly_plan(
-        "生成七天健康计划",
-        mode="MANUAL",
+        plan_request("生成七天健康计划", mode="MANUAL"),
         agent=plan_agent,
     )
 
@@ -437,8 +435,7 @@ def test_invalid_plan_mode(plan_agent):
     """不支持的生成模式不能执行 Agent。"""
 
     result = runtime.run_weekly_plan(
-        "生成健康计划",
-        mode="INVALID_MODE",
+        plan_request("生成健康计划", mode="INVALID_MODE"),
         agent=plan_agent,
     )
 
@@ -454,9 +451,7 @@ def test_missing_previous_plan(plan_agent):
     """无反馈自动生成必须提供上一周计划。"""
 
     result = runtime.run_weekly_plan(
-        "自动生成下一周健康计划",
-        mode="AUTO_NO_FEEDBACK",
-        previous_plan=None,
+        plan_request("自动生成下一周健康计划", mode="AUTO_NO_FEEDBACK", previous_plan=None),
         agent=plan_agent,
     )
 
@@ -480,8 +475,7 @@ def test_invalid_structured_response():
     }
 
     result = runtime.run_weekly_plan(
-        "生成健康计划",
-        mode="MANUAL",
+        plan_request("生成健康计划", mode="MANUAL"),
         agent=agent,
     )
 
@@ -514,9 +508,7 @@ def test_plan_guard_reject(plan_agent, weekly_plan):
     )
 
     result = runtime.run_weekly_plan(
-        "自动生成下一周计划",
-        mode="AUTO_NO_FEEDBACK",
-        previous_plan=previous_plan,
+        plan_request("自动生成下一周计划", mode="AUTO_NO_FEEDBACK", previous_plan=previous_plan),
         agent=plan_agent,
     )
 
@@ -540,8 +532,7 @@ def test_plan_agent_error():
     )
 
     result = runtime.run_weekly_plan(
-        "生成健康计划",
-        mode="MANUAL",
+        plan_request("生成健康计划", mode="MANUAL"),
         agent=agent,
     )
 

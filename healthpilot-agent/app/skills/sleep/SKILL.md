@@ -8,7 +8,7 @@ description: 根据用户作息、睡眠体验、生活安排和每周反馈，�
 ## 一、职责
 
 为HealthPilot单Agent提供睡眠领域建议，
-交由weekly_planning整合。
+交由weekly-planning整合。
 
 支持：
 - 了解作息与睡眠机会。

@@ -8,7 +8,7 @@ description: 根据用户饮食习惯、偏好、预算、过敏和已有健康�
 ## 一、职责
 
 为HealthPilot单Agent提供饮食领域建议，
-交由weekly_planning整合。
+交由weekly-planning整合。
 
 支持：
 - 日常饮食习惯改善。
@@ -75,7 +75,7 @@ description: 根据用户饮食习惯、偏好、预算、过敏和已有健康�
 
 ## 五、慢病约束与表达
 
-如果上下文提供chronic_condition_support的结果：
+如果上下文提供chronic-condition-support的结果：
 - 核对限制内容、来源、时间及待确认事项。
 - 在限制范围内安排普通饮食行动。
 - 不因该Skill存在，就认定病种专属建议已经审核。

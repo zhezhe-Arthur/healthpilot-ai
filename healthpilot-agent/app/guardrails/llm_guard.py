@@ -1,25 +1,22 @@
-
 import json
-import os
 import re
+import logging
+import time
+
 from dataclasses import dataclass
 from typing import Literal
 from urllib.request import Request, ProxyHandler, build_opener
 
-import logging
-import time
-
-logger = logging.getLogger(__name__)
-
-GUARD_MODEL = os.getenv(
-    "GUARD_MODEL",
-    "hf.co/ShahzebKhoso/Qwen3Guard-Gen-8B-GGUF:Q4_K_M",
+from app.config import (
+    GUARD_BASE_URL,
+    GUARD_MODEL,
+    GUARD_API_KEY,
+    GUARD_TIMEOUT,
+    GUARD_MAX_ATTEMPTS,
+    GUARD_RETRY_DELAY,
 )
 
-OLLAMA_URL = os.getenv(
-    "OLLAMA_URL",
-    "http://127.0.0.1:11434",
-).rstrip("/")
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -88,19 +85,25 @@ def _call_guard(
             },
         }
 
-
     req = Request(
-        url=f"{OLLAMA_URL}{endpoint}",
+        url=f"{GUARD_BASE_URL}{endpoint}",
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers=get_guard_headers(),
         method="POST",
     )
 
     try:
         # 本地服务不经过系统代理
-        opener = build_opener(ProxyHandler({}))
+        # 远程服务使用系统默认代理配置
+        if GUARD_BASE_URL.startswith((
+                "http://127.0.0.1:",
+                "http://localhost:",
+        )):
+            opener = build_opener(ProxyHandler({}))
+        else:
+            opener = build_opener()
 
-        with opener.open(req, timeout=120) as response:
+        with opener.open(req, timeout=GUARD_TIMEOUT) as response:
             data = json.loads(response.read().decode("utf-8"))
 
         if direction == "output":
@@ -232,8 +235,8 @@ def _build_response_guard_prompt(
 def guarded_call(
     func,
     *args,
-    max_attempts: int = 3,
-    retry_delay: float = 0.5,
+    max_attempts: int = GUARD_MAX_ATTEMPTS,
+    retry_delay: float = GUARD_RETRY_DELAY,
 ):
     """
     安全服务调用失败时有限重试。
@@ -286,3 +289,16 @@ def guarded_call(
             time.sleep(retry_delay)
 
     return None
+def get_guard_headers() -> dict[str, str]:
+    """构造安全模型请求头。"""
+
+    headers = {
+        "Content-Type": "application/json",
+    }
+
+    if GUARD_API_KEY:
+        headers["Authorization"] = (
+            f"Bearer {GUARD_API_KEY}"
+        )
+
+    return headers

@@ -14,8 +14,8 @@ description: 综合运动、营养、睡眠、心理支持及慢性病管理和�
 - exercise：运动与恢复安排。
 - nutrition：饮食行动与餐食安排。
 - sleep：作息与睡眠习惯支持。
-- mental_health：用户愿意接受的心理支持行动。
-- chronic_condition_support：慢性病管理和记录信息。
+- mental-health：用户愿意接受的心理支持行动。
+- chronic-condition-support：慢性病管理和记录信息。
 
 负责：
 - 根据用户目标确定本周重点。
@@ -168,7 +168,7 @@ description: 综合运动、营养、睡眠、心理支持及慢性病管理和�
 
 ## 六、慢性病管理和记录的整合职责
 
-使用 chronic_condition_support 提供的：
+使用 chronic-condition-support 提供的：
 - 已知健康限制。
 - 已有日常管理安排。
 - 用户提供的监测或检查记录。

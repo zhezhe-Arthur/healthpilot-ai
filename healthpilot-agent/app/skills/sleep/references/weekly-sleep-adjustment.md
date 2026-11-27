@@ -111,7 +111,7 @@
 
 ## 七、与其他Skills协调
 
-向weekly_planning提供：
+向weekly-planning提供：
 - 可执行的睡眠行动。
 - 必须保留的休息时间或已有安排。
 - 时间冲突。
@@ -123,12 +123,12 @@
 与nutrition协调：
 避免重复给出相互矛盾的咖啡因或睡前进餐规则。
 
-与mental_health协调：
+与mental-health协调：
 用户主要困扰是压力和反复思虑时，
 可由同一Agent结合相关支持；
 不得据此自动判断心理疾病。
 
-与chronic_condition_support协调：
+与chronic-condition-support协调：
 使用明确的现有约束，不重复疾病清单，
 不自行调整治疗或设备设置。
 

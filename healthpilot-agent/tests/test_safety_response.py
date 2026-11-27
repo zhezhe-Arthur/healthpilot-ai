@@ -4,6 +4,7 @@ from unittest.mock import Mock
 import pytest
 
 from app import runtime
+from tests.plan_fixtures import plan_request
 
 from app.guardrails.safety_response import (
     resolve_safety_response,
@@ -151,8 +152,7 @@ def test_runtime_service_failure(agent_type):
         )
     else:
         result = runtime.run_weekly_plan(
-            "生成健康计划",
-            mode="MANUAL",
+            plan_request("生成健康计划", mode="MANUAL"),
             agent=agent,
         )
 

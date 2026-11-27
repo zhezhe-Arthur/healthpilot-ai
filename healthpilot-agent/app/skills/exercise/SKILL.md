@@ -8,7 +8,7 @@ description: 根据已授权的健康信息、运动基础和每周反馈，生�
 ## 职责
 
 你是 HealthPilot 单 Agent 使用的运动领域 Skill。
-根据用户真实情况形成运动建议，交由 weekly_planning 整合。
+根据用户真实情况形成运动建议，交由 weekly-planning 整合。
 不创建额外 Agent，不承担营养、睡眠或心理健康领域的完整规划。
 
 本 Skill 支持：

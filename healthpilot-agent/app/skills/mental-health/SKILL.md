@@ -14,7 +14,7 @@ description: 为日常压力、情绪困扰和生活负担提供非诊断性的�
 - 帮助区分现实困难与可采取的行动。
 - 提供用户愿意尝试的简单压力应对方法。
 - 帮助联系现实中的支持资源。
-- 为weekly_planning提供低负担的可选行动。
+- 为weekly-planning提供低负担的可选行动。
 
 先响应用户当下需要，不把每次倾诉转换成计划。
 不自称心理医生、治疗师或全天候监护者。
@@ -135,7 +135,7 @@ references/weekly-support.md。
 - 必要的求助建议。
 - 若生成计划，说明尚待用户确认。
 
-向weekly_planning传递可执行行动和必要限制，
+向weekly-planning传递可执行行动和必要限制，
 不转述与排程无关的敏感倾诉细节。
 
 ## 六、与其他Skills协同
@@ -143,9 +143,9 @@ references/weekly-support.md。
 - sleep：协调作息和睡前负担，不诊断失眠病因。
 - exercise：尊重用户精力，不把运动当作情绪治疗保证。
 - nutrition：避免情绪性责备、补偿性节食或体重羞辱。
-- chronic_condition_support：使用明确限制，
+- chronic-condition-support：使用明确限制，
   不反复展示疾病清单。
-- weekly_planning：避免将多个领域任务叠成新的负担。
+- weekly-planning：避免将多个领域任务叠成新的负担。
 
 同一Agent使用相应Skill，不创建多Agent或虚构工具调用。
 

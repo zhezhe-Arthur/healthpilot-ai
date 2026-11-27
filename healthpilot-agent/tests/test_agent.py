@@ -24,7 +24,7 @@ def main():
                 "role": "user",
                 "content": (
                     "请使用 read_file 工具读取 "
-                    "/skills/weekly_planning/SKILL.md，"
+                    "/skills/weekly-planning/SKILL.md，"
                     "然后根据文件内容说明："
                     "HealthPilot 是否需要每日打卡？"
                     "七天计划如何确认生效？"

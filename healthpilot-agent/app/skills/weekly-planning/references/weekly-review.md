@@ -65,7 +65,7 @@
 
 ### 慢性病管理和记录
 
-使用chronic_condition_support整理后的信息：
+使用chronic-condition-support整理后的信息：
 - 更新待办状态。
 - 保留明确的新安排。
 - 标注冲突和待确认内容。

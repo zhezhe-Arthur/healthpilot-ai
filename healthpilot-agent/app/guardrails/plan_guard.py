@@ -1,14 +1,12 @@
 
 from dataclasses import dataclass
+from datetime import date
+from decimal import Decimal
 
-from app.schemas.health_plan import WeeklyPlan
+from app.schemas.health_plan import WeeklyPlan, PlanCategory, PlanMode
 
 
-MODES = {
-    "MANUAL",
-    "AUTO_WITH_FEEDBACK",
-    "AUTO_NO_FEEDBACK",
-}
+MODES = {mode.value for mode in PlanMode}
 
 # 目前只比较可统一换算为分钟的运动任务
 MINUTE_UNITS = {
@@ -31,23 +29,23 @@ class PlanGuardResult:
         return len(self.errors) == 0
 
 
-def exercise_minutes(plan: WeeklyPlan) -> float | None:
+def exercise_minutes(plan: WeeklyPlan) -> Decimal | None:
     """
     计算一周量化运动的总分钟数。
 
     无法确定运动时长时返回 None，
     不猜测单位、不假设任务已经完成。
     """
-    total = 0.0
+    total = Decimal(0)
 
     for item in plan.items:
-        if item.category.lower() != "exercise":
+        if not isinstance(item.category, PlanCategory):
+            return None
+        if item.category != PlanCategory.EXERCISE:
             continue
 
-        # 休息日不计入运动负荷
+        # 不通过标题猜测休息或允许缺失时长。
         if item.target_quantity is None:
-            if "休息" in item.title or "不安排训练" in item.title:
-                continue
             return None
 
         unit = (item.target_unit or "").strip().lower()
@@ -65,9 +63,13 @@ def check_weekly_plan(
     *,
     mode: str,
     previous_plan: WeeklyPlan | None = None,
+    expected_week_start_date: date | None = None,
 ) -> PlanGuardResult:
     errors = []
     warnings = []
+
+    if expected_week_start_date is not None and plan.week_start_date != expected_week_start_date:
+        errors.append("计划起始日期与请求的目标周不一致")
 
     # 1. 生成模式
     if mode not in MODES:
@@ -109,7 +111,7 @@ def check_weekly_plan(
                 errors.append(
                     "无法比较新旧运动负荷，需要人工审核"
                 )
-            elif new_minutes > old_minutes + 1e-9:
+            elif new_minutes > old_minutes:
                 errors.append(
                     "无反馈时禁止自动增加每周运动时长："
                     f"原计划 {old_minutes:g} 分钟，"

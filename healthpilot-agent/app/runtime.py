@@ -8,9 +8,9 @@ from app.guardrails.llm_guard import (
 )
 from app.guardrails.plan_guard import (
     check_weekly_plan,
-    MODES,
 )
-from app.schemas.health_plan import WeeklyPlan
+from app.schemas.health_plan import WeeklyPlan, WeeklyPlanRequest, to_java_draft
+from pydantic import ValidationError
 from app.agent.health_agent import extract_health_memory
 
 from app.middleware.safety_middleware import (
@@ -222,24 +222,16 @@ def run_health_chat(
 
 
 def run_weekly_plan(
-    user_text: str,
-    mode: str,
-    previous_plan: WeeklyPlan | None = None,
+    request: WeeklyPlanRequest | dict,
     agent=None,
 ) -> RuntimeResult:
     """Weekly Plan Agent 七天计划生成入口。"""
 
     # 1. 验证业务参数
-    if mode not in MODES:
-        return review("不支持的计划生成模式")
-
-    if (
-        mode == "AUTO_NO_FEEDBACK"
-        and previous_plan is None
-    ):
-        return review(
-            "无反馈自动生成缺少上一份确认计划"
-        )
+    try:
+        request = WeeklyPlanRequest.model_validate(request)
+    except ValidationError:
+        return review("计划请求无效，请检查模式、目标周、已确认资料及历史计划")
 
     try:
         if agent is None:
@@ -255,7 +247,7 @@ def run_weekly_plan(
             "messages": [
                 {
                     "role": "user",
-                    "content": user_text,
+                    "content": request.model_dump_json(by_alias=True),
                 }
             ]
         })
@@ -280,8 +272,9 @@ def run_weekly_plan(
     try:
         rule_result = check_weekly_plan(
             plan,
-            mode=mode,
-            previous_plan=previous_plan,
+            mode=request.mode,
+            previous_plan=request.previous_plan,
+            expected_week_start_date=request.week_start_date,
         )
 
     except Exception:
@@ -295,13 +288,16 @@ def run_weekly_plan(
             messages=rule_result.errors,
         )
 
-    # 5. 返回合格的候选计划
+    # 5. 转换为 Java 保存 DTO，禁止直接提交内部模型。
+    try:
+        draft = to_java_draft(plan)
+    except (ValueError, KeyError, TypeError):
+        return review("计划无法转换为 Java 草稿请求")
+
+    # 返回合格的候选计划
     # Runtime 不直接写数据库，也不确认计划生效
     return RuntimeResult(
         status="READY",
-        data=plan.model_dump(
-            by_alias=True,
-            mode="json",
-        ),
+        data=draft,
         messages=rule_result.warnings,
     )

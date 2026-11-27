@@ -113,7 +113,7 @@
 
 ## 七、跨Skill交接
 
-向weekly_planning提供：
+向weekly-planning提供：
 - 本周饮食行动。
 - 可调整的时间和执行方式。
 - 必须遵守的过敏及明确限制。
