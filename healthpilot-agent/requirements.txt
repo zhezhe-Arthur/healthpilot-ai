@@ -3,3 +3,5 @@ uvicorn[standard]
 pydantic-settings
 deepagents
 langchain-openai
+pytest
+PyYAML

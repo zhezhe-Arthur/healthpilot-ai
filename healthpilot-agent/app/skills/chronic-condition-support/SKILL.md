@@ -1,5 +1,5 @@
 ---
-name: chronic_condition_support
+name: chronic-condition-support
 description: 整理用户提供的慢性病信息、已有医嘱、生活限制、监测记录和复查安排，为综合周计划提供管理约束、相关待办及异常和缺失信息。不进行诊断、用药或治疗决策；记录保存、定时触发和通知由Java后台负责。
 ---
 
