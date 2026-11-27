@@ -18,6 +18,17 @@ from app.config import (
 
 logger = logging.getLogger(__name__)
 
+GUARD_CATEGORIES = (
+    "Violent",
+    "Non-violent Illegal Acts",
+    "Sexual Content or Sexual Acts",
+    "PII",
+    "Suicide & Self-Harm",
+    "Unethical Acts",
+    "Politically Sensitive Topics",
+    "Copyright Violation",
+)
+
 
 @dataclass
 class GuardResult:
@@ -114,36 +125,55 @@ def _call_guard(
     except Exception as exc:
         return _needs_review(f"安全模型调用失败：{exc}")
 
-    lines = [
-        line.strip()
-        for line in raw.splitlines()
-        if line.strip()
-    ]
+    return _parse_guard_response(raw, direction=direction)
 
-    if len(lines) < 2:
-        result = _needs_review("安全模型输出格式不正确")
+
+def _parse_guard_response(
+    raw: str,
+    *,
+    direction: Literal["input", "output"],
+) -> GuardResult:
+    """校验完整响应；输入两行，输出另需一行 Refusal。"""
+    def invalid(reason: str) -> GuardResult:
+        result = _needs_review(reason)
         result.raw_output = raw
         return result
 
-    match = re.fullmatch(
-        r"Safety:\s*(Safe|Controversial|Unsafe)",
+    # 只容忍首尾空白和行内缩进，不丢弃内部空行或任何额外内容。
+    lines = [line.strip() for line in raw.strip().splitlines()]
+    expected_lines = 2 if direction == "input" else 3
+    if len(lines) != expected_lines:
+        return invalid("安全模型响应行数不符合完整格式")
+
+    safety_match = re.fullmatch(
+        r"Safety:[ \t]*(Safe|Controversial|Unsafe)",
         lines[0],
         re.IGNORECASE,
     )
-
-    if not match or not lines[1].lower().startswith("categories:"):
-        result = _needs_review("无法解析安全分类")
-        result.raw_output = raw
-        return result
-
-    safety = match.group(1).capitalize()
-
-    category_text = lines[1].split(":", 1)[1].strip()
-    categories = (
-        []
-        if category_text.lower() in ("none", "")
-        else [c.strip() for c in category_text.split(",")]
+    category_match = re.fullmatch(
+        r"Categories:[ \t]*(.+)", lines[1], re.IGNORECASE,
     )
+    if not safety_match or not category_match:
+        return invalid("无法解析安全分类字段")
+
+    if direction == "output" and not re.fullmatch(
+        r"Refusal:[ \t]*(Yes|No)", lines[2], re.IGNORECASE,
+    ):
+        return invalid("输出审查缺少有效的 Refusal 字段")
+
+    safety = safety_match.group(1).capitalize()
+    category_text = category_match.group(1).strip()
+    category_names = {name.casefold(): name for name in GUARD_CATEGORIES}
+    if category_text.casefold() == "none":
+        categories = []
+    else:
+        tokens = [token.strip().casefold() for token in category_text.split(",")]
+        if any(token not in category_names for token in tokens) or len(tokens) != len(set(tokens)):
+            return invalid("风险类别未知、重复或格式不正确")
+        categories = [category_names[token] for token in tokens]
+
+    if (safety == "Safe") != (not categories):
+        return invalid("Safety 与 Categories 相互冲突")
 
     if safety == "Safe":
         decision = "PASS"
@@ -208,10 +238,7 @@ def _build_response_guard_prompt(
         "<END SAFETY POLICY>\n\n"
 
         "<BEGIN UNSAFE CONTENT CATEGORIES>\n"
-        "Violent; Non-violent Illegal Acts; "
-        "Sexual Content or Sexual Acts; PII; "
-        "Suicide & Self-Harm; Unethical Acts; "
-        "Politically Sensitive Topics; Copyright Violation.\n"
+        f"{'; '.join(GUARD_CATEGORIES)}.\n"
         "<END UNSAFE CONTENT CATEGORIES>\n\n"
 
         "<BEGIN CONVERSATION>\n\n"
